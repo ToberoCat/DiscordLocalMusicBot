@@ -2,8 +2,8 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { audio, client } = require("../../index");
 const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require("discord.js");
 
-const name = "leave";
-const description = "Stop the bot from playing your queue";
+const name = "loop";
+const description = "Loop the current song";
 
 module.exports = {
     name,
@@ -27,5 +27,5 @@ module.exports = {
 }
 
 async function execute(args, channel, member) {
-    return audio.stop(channel, member);
+    return audio.loop(channel, member);
 }

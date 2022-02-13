@@ -18,17 +18,17 @@ module.exports = {
     }),
     slashCommand(interaction, args) {
         const channel = client.channels.cache.get(interaction.channelId);
-        execute(args, channel, interaction.member).then((response, err) => {
+        execute(args, channel, interaction.member).then(async (response, err) => {
             if (err) return console.error(err);
 
-            interaction.reply(response);
+            audio.setMessage(await interaction.reply(response));
         });
     },
     messageCommand(message, args) {
-        execute(args, message.channel, message.member).then((response, err) => {
+        execute(args, message.channel, message.member).then(async (response, err) => {
             if (err) return console.error(err);
 
-            message.channel.send(response);
+            audio.setMessage(await message.channel.send(response));
         });
     }
 }

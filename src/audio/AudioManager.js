@@ -97,22 +97,38 @@ class AudioManager {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
 
-            guildQueue.messageChannel.send(await this.play(guildId));
+            guildQueue.message.edit(await this.play(guildId));
         });
 
         connection.subscribe(player);
         this.queue.set(guildId, {
             messageChannel: messageChannel,
+            message: null,
             connection: connection,
             voiceChannelId: member.voice.channelId,
             player: player,
+            loop: false,
+            playing: "",
+
             songQueue: [ filePath ],
         });
     }
+
+    setMessage(message) {
+        const guildQueue = this.queue.get(message.guildId);
+        guildQueue.message = message;
+    }
+
     async play(guildId) {
         const guildQueue = this.queue.get(guildId);
 
-        const nextSong = guildQueue.songQueue.shift();
+        let nextSong;
+        if (guildQueue.loop) {
+            nextSong = guildQueue.playing;
+        } else {
+            nextSong = guildQueue.songQueue.shift();
+        }
+
         if (nextSong == null) {
             guildQueue.connection.destroy();
             this.queue.delete(guildId);
@@ -124,6 +140,8 @@ class AudioManager {
         const info = await mm.parseFile(nextSong);
 
         const title = info.common.title ? info.common.title : "No title set for this song";
+
+        guildQueue.playing = nextSong;
 
         return { embeds: [ new MessageEmbed().setColor("#1ED760").setTitle(`Now playing: ${title}`)
                 .setDescription(`Song is ${await this.getLength(nextSong)} long`).setTimestamp() ]}
@@ -201,7 +219,7 @@ class AudioManager {
 
         guildQueue.connection.destroy();
         this.queue.delete(messageChannel.guild.id);
-        return { embeds: [ new MessageEmbed().setColor("#ED4245").setTitle("Stopped playing").setTimestamp() ]}
+        return { embeds: [ new MessageEmbed().setColor("#5865F2").setTitle("Stopped playing").setTimestamp() ]}
     }
     async skip(messageChannel, member) {
         if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
@@ -220,9 +238,78 @@ class AudioManager {
                 .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
             return { embeds: [ embed ] };
         }
-
+        const looped = guildQueue.loop;
+        guildQueue.loop = false;
         guildQueue.player.stop();
-        return await this.play(messageChannel.guild.id)
+        const message = await this.play(messageChannel.guild.id)
+        guildQueue.loop = looped;
+        return message;
+    }
+    pause(messageChannel, member) {
+        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
+                .setTitle("You are in no voice channel")
+                .setDescription("You need to connect to a voice channel to use this command") ] };
+
+        const guildQueue = this.queue.get(messageChannel.guild.id);
+
+        if (guildQueue == null) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("There is nothing to pause");
+            return { embeds: [ embed ] };
+        }
+
+        if (guildQueue.messageChannel.id !== messageChannel.id) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
+                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            return { embeds: [ embed ] };
+        }
+
+        guildQueue.player.pause();
+        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Paused song");
+        return { embeds: [ embed ] };
+    }
+    resume(messageChannel, member) {
+        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
+                .setTitle("You are in no voice channel")
+                .setDescription("You need to connect to a voice channel to use this command") ] };
+
+        const guildQueue = this.queue.get(messageChannel.guild.id);
+
+        if (guildQueue == null) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("There is nothing to resume");
+            return { embeds: [ embed ] };
+        }
+
+        if (guildQueue.messageChannel.id !== messageChannel.id) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
+                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            return { embeds: [ embed ] };
+        }
+
+        guildQueue.player.unpause();
+        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Resumed song");
+        return { embeds: [ embed ] };
+    }
+    loop(messageChannel, member) {
+        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
+                .setTitle("You are in no voice channel")
+                .setDescription("You need to connect to a voice channel to use this command") ] };
+
+        const guildQueue = this.queue.get(messageChannel.guild.id);
+
+        if (guildQueue == null) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Bot isn't playing anything");
+            return { embeds: [ embed ] };
+        }
+
+        if (guildQueue.messageChannel.id !== messageChannel.id) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
+                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            return { embeds: [ embed ] };
+        }
+
+        guildQueue.loop = !guildQueue.loop;
+        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle(guildQueue.loop ? "Now looping currently playing song" : "Stopped looping currently playing song");
+        return { embeds: [ embed ] };
     }
 }
 
