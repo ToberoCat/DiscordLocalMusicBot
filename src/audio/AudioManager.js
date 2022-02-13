@@ -97,7 +97,7 @@ class AudioManager {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
 
-            guildQueue.message.edit(await this.play(guildId));
+            guildQueue.messageChannel.send(await this.play(guildId));
         });
 
         connection.subscribe(player);

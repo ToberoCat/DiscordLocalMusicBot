@@ -1,5 +1,4 @@
 const { client } = require("../index");
-const { selectors } = require("../handler/Handler");
 
 client.on("interactionCreate", async (interaction) => {
     if (interaction.isCommand()) {
@@ -13,7 +12,5 @@ client.on("interactionCreate", async (interaction) => {
         });
 
         cmd.slashCommand(interaction, args);
-    } else if (interaction.isSelectMenu()) {
-        require(selectors.get(interaction.customId))(interaction)
     }
 });

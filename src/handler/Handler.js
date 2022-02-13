@@ -3,8 +3,6 @@ const { promisify } = require("util");
 
 const globPromise = promisify(glob);
 
-const buttons = new Map();
-
 module.exports = async (client, config) => {
     // Commands
     const commandFiles = await globPromise(`${process.cwd()}/commands/**/*.js`);
@@ -22,13 +20,6 @@ module.exports = async (client, config) => {
         }
     });
 
-    //Buttons
-    const buttonFiles = await globPromise(`${process.cwd()}/buttons/**/*.js`);
-    buttonFiles.map((value) => {
-        const splitted = value.split("/");
-        buttons.set(splitted[splitted.length-1].split(".")[0], value.toString());
-    });
-
     // Events
     const eventFiles = await globPromise(`${process.cwd()}/events/*.js`);
     eventFiles.map((value) => require(value));
@@ -39,5 +30,3 @@ module.exports = async (client, config) => {
         .get(config.slashCommandGuild)
         .commands.set(commands);
 }
-
-module.exports.selectors = buttons;
