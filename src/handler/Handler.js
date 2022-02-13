@@ -25,8 +25,9 @@ module.exports = async (client, config) => {
     eventFiles.map((value) => require(value));
 
     //Load slash commands
-    //Global commands! await client.applications.commands.set()
-    await client.guilds.cache
-        .get(config.slashCommandGuild)
-        .commands.set(commands);
+    if (config.useGlobalCommands) {
+        await client.applications.commands.set();
+    } else {
+        await client.guilds.cache.get(config.slashCommandGuild).commands.set(commands);
+    }
 }
