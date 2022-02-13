@@ -21,19 +21,14 @@ module.exports = {
         execute(args, channel, interaction.member).then((response, err) => {
             if (err) return console.error(err);
 
-            interaction.reply(response).then((message) => {
-                interaction.fetchReply()
-                    .then(reply => console.log(`Replied with ${reply.content}`))
-                    .catch(console.error);
-//                audio.setMessage(message);
-            })
+            interaction.reply(response);
         });
     },
     messageCommand(message, args) {
         execute(args, message.channel, message.member).then(async (response, err) => {
             if (err) return console.error(err);
 
-            audio.setMessage(await message.channel.send(response));
+            message.channel.send(response);
         });
     }
 }
