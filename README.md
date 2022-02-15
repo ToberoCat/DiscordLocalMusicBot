@@ -2,7 +2,11 @@
 A discord bot for playing msuci stored in on your computer
 
 Setup:
-You need NodeJSv17.4.0 or later
+Clone this repository by clicking Code > Download ZIP
+Extract to your computer
+
+Installation:
+Requires: NodeJsv17.4.0 or later - If not installed follow steps below or download it from https://nodejs.org/en/
 Run install_windows.bat if you are on windows, install_linux.sh if you are on linux
 
 Go to src/config.json5 and in there is everything you need for running this bot
