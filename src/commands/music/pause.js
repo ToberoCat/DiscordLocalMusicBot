@@ -14,16 +14,7 @@ module.exports = {
         execute(args, channel, interaction.member).then((response, err) => {
             if (err) return console.error(err);
 
-            const reply = response;
-            if (interaction.isButton()) {
-                console.log(interaction.component);
-                interaction.component.lable = "Resume";
-                interaction.component.customId = "resume";
-                reply.components = new MessageActionRow().addComponents();
-            }
-
-
-            interaction.editReply(reply);
+            interaction.editReply(response);
         });
     },
     messageCommand(message, args) {

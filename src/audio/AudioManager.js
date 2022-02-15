@@ -8,6 +8,7 @@ const path = require("path");
 const { video_info, stream } = require("play-dl");
 const play = require("play-dl");
 const youtubeThumbnail = require("youtube-thumbnail");
+const EventEmitter = require("events");
 
 class AudioManager {
     constructor() {
@@ -16,13 +17,11 @@ class AudioManager {
 
     async connect(member) {
         if (!member.voice.channel) return "NOT_CONNECTED";
-        const connection = await joinVoiceChannel({
+        return joinVoiceChannel({
             channelId: member.voice.channelId,
             guildId: member.voice.channel.guildId,
             adapterCreator: member.voice.channel.guild.voiceAdapterCreator
         });
-
-        return connection;
     }
 
     async playSong(url, messageChannel, member) {
@@ -69,7 +68,6 @@ class AudioManager {
         connection.subscribe(player);
         this.queue.set(guildId, {
             messageChannel: messageChannel,
-            message: null,
             connection: connection,
             voiceChannelId: member.voice.channelId,
             player: player,
@@ -113,7 +111,7 @@ class AudioManager {
         guildQueue.playing = nextSong;
 
         return { embeds: [ new MessageEmbed().setColor("#1ED760").setTitle(`Now playing: ${info.video_details.title}`)
-                .setThumbnail(thumbnail.high.url).setTimestamp() ], components: [ this.getRow() ]}
+                .setDescription(`Go to the [youtube](${nextSong})`).setThumbnail(thumbnail.high.url).setTimestamp() ], components: [ this.getRow(guildId) ]}
     }
 
     getSkipButton() {
@@ -141,14 +139,9 @@ class AudioManager {
             .setLabel('Loop')
             .setStyle('SECONDARY');
     }
-    getLinkButton(url) {
-        return new MessageButton().setURL(url)
-            .setLabel('Youtube')
-            .setStyle('LINK');
-    }
-    getRow() {
-        return new MessageActionRow().addComponents(this.getSkipButton(), this.getPauseButton, this.getStopButton(),
-            this.getLoopButton(), this.getLinkButton(nextSong));
+    getRow(guildId) {
+        return new MessageActionRow().addComponents(this.getSkipButton(), this.getPauseButton(),
+            this.getResumeButton(this.queue.get(guildId).playing), this.getLoopButton(), this.getStopButton());
     }
 
     stop(messageChannel, member) {
