@@ -9,6 +9,9 @@ Installation:
 Requires: NodeJsv17.4.0 or later - If not installed follow steps below or download it from https://nodejs.org/en/
 Run install_windows.bat if you are on windows, install_linux.sh if you are on linux
 
+Execute buid.bat on windows and build.sh on linux
+
+Configuring:
 Go to src/config.json5 and in there is everything you need for running this bot
 
 Create a discord bot application under https://discord.com/developers/applications and then invite the bot using https://discordapi.com/permissions.html
