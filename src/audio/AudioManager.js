@@ -2,13 +2,8 @@ const { MessageActionRow, MessageButton, MessageEmbed} = require('discord.js');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior,
     AudioPlayerStatus
 } = require("@discordjs/voice");
-const fs = require("fs");
-const mm = require('music-metadata');
-const path = require("path");
 const { video_info, stream } = require("play-dl");
-const play = require("play-dl");
 const youtubeThumbnail = require("youtube-thumbnail");
-const EventEmitter = require("events");
 
 class AudioManager {
     constructor() {
