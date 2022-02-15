@@ -1,2 +1,1 @@
-npm i -g npm-check-updates
-npm install
+npm i -g npm-check-updates&&npm install
