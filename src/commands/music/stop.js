@@ -14,7 +14,7 @@ module.exports = {
         execute(args, channel, interaction.member).then((response, err) => {
             if (err) return console.error(err);
 
-            interaction.reply(response);
+            interaction.editReply(response);
         });
     },
     messageCommand(message, args) {

@@ -1,7 +1,6 @@
 {
-  "botToken": "YOUR_DISCORD_APPLICATION_TOKEN", // The bot token for your discord bot. Create your bot at: https://discord.com/developers/applications and then invite the bot using https://discordapi.com/permissions.html
+  "botToken": "OTQwMzM4MzUxMzMwOTUxMjM4.YgF8VQ.rjHsj003mKVt3xOYVlYyzEbdHiQ", // The bot token for your discord bot. Create your bot at: https://discord.com/developers/applications and then invite the bot using https://discordapi.com/permissions.html
   "useGlobalCommands": false, // Set to true if you want the bot to add the slash commands to EVERY guild
-  "slashCommandGuild": "YOUR_GUILD_ID", // For faster access to slash commands. only used when useGlobalCommands is set to false. This id is only for one guild. IF your bot runs on more than one, please set useGlobalCommands to true
-  "prefix": "!", // Command prefix
-  "musicPath": "C:/TestMusic" // The directory you store your music files. Use / instead of \
+  "slashCommandGuild": "779302110319607849", // For faster access to slash commands. only used when useGlobalCommands is set to false. This id is only for one guild. IF your bot runs on more than one, please set useGlobalCommands to true
+  "prefix": "!" // Command prefix
 }

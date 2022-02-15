@@ -1,50 +1,17 @@
-const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require("discord.js");
+const { MessageActionRow, MessageButton, MessageEmbed} = require('discord.js');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior,
     AudioPlayerStatus
 } = require("@discordjs/voice");
 const fs = require("fs");
 const mm = require('music-metadata');
 const path = require("path");
+const { video_info, stream } = require("play-dl");
+const play = require("play-dl");
+const youtubeThumbnail = require("youtube-thumbnail");
 
 class AudioManager {
-    constructor(config) {
+    constructor() {
         this.queue = new Map();
-        this.availableSongs = new Map();
-        this.availablePlaylists = new Map();
-        const musicPath = config.musicPath;
-        fs.readdir(musicPath, (err, files) => {
-           files.forEach(file => {
-               const pathToFile = `${musicPath}/${file}`;
-               if (fs.lstatSync(pathToFile).isDirectory()) {
-                   this.availablePlaylists.set(file, this.scanPlaylist(pathToFile))
-               } else {
-                   if (file.length >= 100) {
-                       console.log(`Warning: ${file} in ${musicPath}. The filename is too long. Names must not be longer than 100 charcters`)
-                       return;
-                   }
-                   this.availableSongs.set(file, pathToFile);
-               }
-           });
-        });
-
-    }
-    scanPlaylist(filePath) {
-        const songs = new Map();
-        const files = fs.readdirSync(filePath);
-
-        files.forEach(file => {
-            if (file.length >= 100) {
-                console.log(`Warning: ${file} in ${filePath}. The filename is too long. Names must not be longer than 100 charcters`)
-                return;
-            }
-            const pathToFile = `${filePath}/${file}`;
-            if (!fs.lstatSync(pathToFile).isDirectory()) {
-                songs.set(file, pathToFile);
-                this.availableSongs.set(file, pathToFile);
-            }
-        });
-
-        return songs;
     }
 
     async connect(member) {
@@ -58,7 +25,7 @@ class AudioManager {
         return connection;
     }
 
-    async playSong(songQuery, messageChannel, member) {
+    async playSong(url, messageChannel, member) {
         const embed = new MessageEmbed().setColor("#1ED760").setTimestamp();
 
         const connection = await this.connect(member);
@@ -69,8 +36,7 @@ class AudioManager {
         }
 
         const guildId = messageChannel.guild.id;
-        const filePath = this.availableSongs.get(songQuery);
-        const info = await mm.parseFile(filePath);
+        const info = await video_info(url);
 
         if (this.queue.has(guildId)) {
             const guildQueue = this.queue.get(guildId);
@@ -78,12 +44,12 @@ class AudioManager {
                 embed.setColor("#ED4245").setTitle("Can't use this channel")
                     .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
             } else {
-                const position = this.queue.get(guildId).songQueue.push(filePath);
-                embed.setTitle(`Added ${info.common.title} to server queue`)
+                const position = this.queue.get(guildId).songQueue.push(url);
+                embed.setTitle(`Added ${info.video_details.title} to server queue`)
                     .setDescription(`Current position: ${position}`);
             }
         } else {
-            this.createQueue(guildId, filePath, messageChannel, connection, member);
+            this.createQueue(guildId, url, messageChannel, connection, member);
             return await this.play(guildId);
         }
 
@@ -132,70 +98,57 @@ class AudioManager {
         if (nextSong == null) {
             guildQueue.connection.destroy();
             this.queue.delete(guildId);
-            return { embeds: [ new MessageEmbed().setColor("#ED4245").setTitle("Left because no song was in queue").setTimestamp() ]}
+
+            const embed = new MessageEmbed().setColor("#ED4245").setTitle("Left because no song was in queue").setTimestamp();
+            return { embeds: [ embed ] }
         }
-
-        const resource = createAudioResource(path.resolve(nextSong));
+        const audioStream = await stream(nextSong);
+        const resource = createAudioResource(audioStream.stream, {
+            inputType: audioStream.type
+        })
         guildQueue.player.play(resource);
-        const info = await mm.parseFile(nextSong);
-
-        const title = info.common.title ? info.common.title : "No title set for this song";
+        const info = await video_info(nextSong);
+        const thumbnail = youtubeThumbnail(nextSong);
 
         guildQueue.playing = nextSong;
 
-        return { embeds: [ new MessageEmbed().setColor("#1ED760").setTitle(`Now playing: ${title}`)
-                .setDescription(`Song is ${await this.getLength(nextSong)} long`).setTimestamp() ]}
+        return { embeds: [ new MessageEmbed().setColor("#1ED760").setTitle(`Now playing: ${info.video_details.title}`)
+                .setThumbnail(thumbnail.high.url).setTimestamp() ], components: [ this.getRow() ]}
     }
 
-    formatDuration(duration) {
-        let seconds = ""+Math.round(duration % 60);
-        if (seconds.length === 1) seconds = `0${seconds}`;
-
-        return `${Math.floor(duration / 60)}:${seconds} min`;
+    getSkipButton() {
+        return new MessageButton().setCustomId('skip')
+            .setLabel('Skip')
+            .setStyle('SECONDARY');
     }
-
-    async getLength(filePath) { return this.formatDuration(await this.getRawLength(filePath)); }
-    async getRawLength(filePath) {
-        const info = await mm.parseFile(filePath);
-
-        return info.format.duration;
+    getStopButton() {
+        return new MessageButton().setCustomId('stop')
+            .setLabel('Stop')
+            .setStyle('DANGER');
     }
-
-    async playPlaylist(playlistQuery, messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
-
-
-        const playlist = this.availablePlaylists.get(playlistQuery);
-        const guildId = messageChannel.guild.id;
-
-
-        const queued = this.queue.has(guildId) && this.queue.get(guildId).songQueue.length > 0;
-        const embed = new MessageEmbed().setColor("#1ED760").setTitle(queued ? `Added ${playlistQuery} to server queue` :
-            `Now playing ${playlistQuery}`);
-
-
-        const guildQueue = this.queue.get(guildId);
-        if (queued && guildQueue.messageChannel.id !== messageChannel.id) {
-            embed.setColor("#ED4245").setTitle("Can't use this channel")
-                    .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
-            return { embeds: [ embed ] };
-        }
-
-        let totalPlaytime = 0;
-
-        for (let entry of playlist.entries()) {
-            const key = entry[0], value = entry[1];
-            await this.playSong(key, messageChannel, member);
-            const duration = await this.getRawLength(value);
-            totalPlaytime += duration;
-            embed.addField(key, `Song does take ${this.formatDuration(duration)}`, true);
-        }
-
-        embed.setDescription(`Your playlist will take ${this.formatDuration(totalPlaytime)}. All added songs will get listed below`)
-
-        return {embeds: [ embed ] };
+    getPauseButton() {
+        return new MessageButton().setCustomId('pause')
+            .setLabel('Pause')
+            .setStyle('SECONDARY');
+    }
+    getResumeButton() {
+        return new MessageButton().setCustomId('resume')
+            .setLabel('Resume')
+            .setStyle('SECONDARY');
+    }
+    getLoopButton() {
+        return new MessageButton().setCustomId('loop')
+            .setLabel('Loop')
+            .setStyle('SECONDARY');
+    }
+    getLinkButton(url) {
+        return new MessageButton().setURL(url)
+            .setLabel('Youtube')
+            .setStyle('LINK');
+    }
+    getRow() {
+        return new MessageActionRow().addComponents(this.getSkipButton(), this.getPauseButton, this.getStopButton(),
+            this.getLoopButton(), this.getLinkButton(nextSong));
     }
 
     stop(messageChannel, member) {

@@ -3,6 +3,8 @@ const { promisify } = require("util");
 
 const globPromise = promisify(glob);
 
+const buttons = new Map();
+
 module.exports = async (client, config) => {
     // Commands
     const commandFiles = await globPromise(`${process.cwd()}/commands/**/*.js`);

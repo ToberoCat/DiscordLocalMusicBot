@@ -1,27 +1,24 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { audio, client } = require("../../index");
 const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require("discord.js");
+const play = require('play-dl');
 
 const name = "play";
 const description = "Play a song from music";
 
+const youtubeURLRegex = /^[a-zA-Z0-9-_]{11}$/;
+
 module.exports = {
     name,
     description,
-    builder: new SlashCommandBuilder().setName(name).setDescription(description).addStringOption(option => {
-            option.setName("song").setDescription("The song name").setRequired(true);
-            audio.availableSongs.forEach((value, key) => {
-                option.addChoice(key, key);
-            });
-
-            return option
-    }),
+    builder: new SlashCommandBuilder().setName(name).setDescription(description).addStringOption(option =>
+            option.setName("song").setDescription("The song name").setRequired(true)),
     slashCommand(interaction, args) {
         const channel = client.channels.cache.get(interaction.channelId);
         execute(args, channel, interaction.member).then(async (response, err) => {
             if (err) return console.error(err);
 
-            interaction.reply(response);
+            interaction.editReply(response);
         });
     },
     messageCommand(message, args) {
@@ -35,13 +32,20 @@ module.exports = {
 
 async function execute(args, channel, member) {
     const query = args.join(" ");
-    if (audio.availableSongs.has(query)) {
-        return audio.playSong(query, channel, member);
+    let url = "";
+    if (youtubeURLRegex.test(query)) {
+        url = query;
     } else {
-        const embed = new MessageEmbed()
-            .setTitle("Didn't find song")
-            .setDescription(`Song ${query} wasn't found in the music registry`)
-            .setColor("#ED4245");
-        return { embeds: [ embed ] };
+        const search = await play.search(query, {
+            limit: 1
+        });
+
+        if (search == null) {
+            return { embeds: [ new MessageEmbed().setTitle("Couldn't find song")
+                    .setDescription(`The song ${query} you were searching for wasn't found `) ] };
+        }
+        url = search[0].url;
     }
+
+    return audio.playSong(url, channel, member);
 }

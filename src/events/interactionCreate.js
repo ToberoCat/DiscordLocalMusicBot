@@ -2,6 +2,7 @@ const { client } = require("../index");
 
 client.on("interactionCreate", async (interaction) => {
     if (interaction.isCommand()) {
+        await interaction.deferReply();
         const cmd = client.commands.get(interaction.commandName);
         if (!cmd)
             return interaction.followUp({ content: "An error has occured " });
@@ -12,5 +13,13 @@ client.on("interactionCreate", async (interaction) => {
         });
 
         cmd.slashCommand(interaction, args);
+    } else if (interaction.isButton()) {
+        await interaction.deferReply();
+        const cmd = client.commands.get(interaction.customId);
+
+        if (!cmd)
+            return interaction.followUp({ content: "An error has occured " });
+
+        cmd.slashCommand(interaction, []);
     }
 });

@@ -14,7 +14,13 @@ module.exports = {
         execute(args, channel, interaction.member).then((response, err) => {
             if (err) return console.error(err);
 
-            interaction.reply(response);
+            if (interaction.isButton()) {
+                console.log(interaction.component);
+                interaction.component.setName("Pause");
+                interaction.component.setCustomId("pause");
+            }
+
+            interaction.editReply(response);
         });
     },
     messageCommand(message, args) {
