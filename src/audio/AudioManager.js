@@ -43,11 +43,14 @@ class AudioManager {
                 embed.setTitle(`Added ${info.video_details.title} to server queue`)
                     .setDescription(`Current position: ${position}`);
                 return { embeds: [embed] };
+            } else {
+                this.createQueue(guildId, url, messageChannel, connection, member);
+                return await this.play(guildId);
             }
+        } else {
+            this.createQueue(guildId, url, messageChannel, connection, member);
+            return await this.play(guildId);
         }
-
-        this.createQueue(guildId, url, messageChannel, connection, member);
-        return await this.play(guildId);
 
         return { embeds: [embed] };
     }
@@ -85,6 +88,29 @@ class AudioManager {
             timeoutID: -1,
             songQueue: [ filePath ],
         });
+    }
+
+    async setVolume(volume) {
+        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
+                .setTitle("You are in no voice channel")
+                .setDescription("You need to connect to a voice channel to use this command") ] };
+
+        const guildQueue = this.queue.get(messageChannel.guild.id);
+
+        if (guildQueue == null) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Bot isn't playing anything");
+            return { embeds: [ embed ] };
+        }
+
+        if (guildQueue.messageChannel.id !== messageChannel.id) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
+                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            return { embeds: [ embed ] };
+        }
+
+        guildQueue.loop = !guildQueue.loop;
+        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle(guildQueue.loop ? "Now looping currently playing song" : "Stopped looping currently playing song");
+        return { embeds: [ embed ] };
     }
 
     async play(guildId) {
