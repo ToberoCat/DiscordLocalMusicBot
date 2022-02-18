@@ -90,7 +90,7 @@ class AudioManager {
         });
     }
 
-    async setVolume(volume, messageChannel) {
+    async setVolume(volume, messageChannel, member) {
         if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
                 .setTitle("You are in no voice channel")
                 .setDescription("You need to connect to a voice channel to use this command") ] };

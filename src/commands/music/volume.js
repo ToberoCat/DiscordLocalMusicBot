@@ -27,5 +27,5 @@ module.exports = {
 }
 
 async function execute(args, channel, member) {
-    return audio.setVolume(args, channel);
+    return audio.setVolume(args, channel, member);
 }
