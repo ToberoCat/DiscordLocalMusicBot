@@ -57,9 +57,14 @@ class AudioManager {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
 
-            guildQueue.timeoutID = setTimeout(async () => {
+            if (guildQueue.songQueue.length > 0) {
                 guildQueue.messageChannel.send(await this.play(guildId));
-            }, 60*5000);
+            } else {
+                guildQueue.timeoutID = setTimeout(async () => {
+                    guildQueue.messageChannel.send(await this.play(guildId));
+                }, 60000);
+            }
+
         });
         player.on(AudioPlayerStatus.Playing, async () => {
             const guildQueue = this.queue.get(guildId);
