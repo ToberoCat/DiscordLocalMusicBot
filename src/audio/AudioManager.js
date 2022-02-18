@@ -51,13 +51,20 @@ class AudioManager {
     }
 
     createQueue(guildId, filePath, messageChannel, connection, member) {
-        const player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
+        const player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Play } });
 
         player.on(AudioPlayerStatus.Idle, async () => {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
 
-            guildQueue.messageChannel.send(await this.play(guildId));
+            guildQueue.timeoutID = setTimeout(async () => {
+                guildQueue.messageChannel.send(await this.play(guildId));
+            }, 60*5000);
+        });
+        player.on(AudioPlayerStatus.Playing, async () => {
+            const guildQueue = this.queue.get(guildId);
+            if (guildQueue == null) return;
+            clearTimeout(guildQueue.timeoutID);
         });
 
         connection.subscribe(player);
@@ -68,7 +75,7 @@ class AudioManager {
             player: player,
             loop: false,
             playing: "",
-
+            timeoutID: -1,
             songQueue: [ filePath ],
         });
     }
