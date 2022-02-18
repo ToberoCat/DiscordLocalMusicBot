@@ -39,13 +39,11 @@ class AudioManager {
                 embed.setColor("#ED4245").setTitle("Can't use this channel")
                     .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
                 return { embeds: [embed] };
-            } else if (guildQueue.songQueue.length > 0 && !guildQueue.playing) {
+            } else {
                 const position = this.queue.get(guildId).songQueue.push(url);
                 embed.setTitle(`Added ${info.video_details.title} to server queue`)
                     .setDescription(`Current position: ${position}`);
                 return { embeds: [embed] };
-            } else {
-                return await this.play(guildId);
             }
         } else {
             this.createQueue(guildId, url, messageChannel, connection, member);
@@ -69,7 +67,7 @@ class AudioManager {
                 guildQueue.playing = "";
                 guildQueue.timeoutID = setTimeout(async () => {
                     guildQueue.messageChannel.send(await this.play(guildId));
-                }, 60000);
+                }, 1500);
             }
 
         });
