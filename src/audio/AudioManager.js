@@ -64,11 +64,11 @@ class AudioManager {
             if (guildQueue == null) return;
 
             guildQueue.cachedPlaying = guildQueue.playing;
-            guildQueue.playing = "";
             if (guildQueue.songQueue.length > 0 || guildQueue.loop) {
                 guildQueue.messageChannel.send(await this.play(guildId));
             } else {
                 guildQueue.timeoutID = setTimeout(async () => {
+                    guildQueue.playing = "";
                     guildQueue.messageChannel.send(await this.play(guildId));
                 }, 60000);
             }
