@@ -15,9 +15,7 @@
     "glob": "^7.2.0",
     "json5": "^2.2.0",
     "play-dl": "^1.8.8",
-    "tweetnacl": "^1.0.3"
-  },
-  "devDependencies": {
+    "tweetnacl": "^1.0.3",
     "youtube-thumbnail": "^1.3.0"
   }
 }
