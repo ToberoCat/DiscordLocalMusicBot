@@ -28,7 +28,7 @@ module.exports = async (client, config) => {
 
     //Load slash commands
     if (config.useGlobalCommands) {
-        await client.applications.commands.set();
+        await client.applications.commands.set(commands);
     } else {
         await client.guilds.cache.get(config.slashCommandGuild).commands.set(commands);
     }

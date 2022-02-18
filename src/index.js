@@ -20,7 +20,7 @@ client.once("ready", async () => {
     console.log(`Ready! Logged in as ${client.user.tag}! I'm on ${guilds} ${guilds === 1 ? "guild" : "guilds"}`);
 });
 
-client.login(config.botToken);
+client.login(process.env.BOT_TOKEN || config.botToken);
 
 module.exports.client = client;
 module.exports.config = config;
