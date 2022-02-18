@@ -37,15 +37,17 @@ class AudioManager {
             if (guildQueue.messageChannel.id !== messageChannel.id) {
                 embed.setColor("#ED4245").setTitle("Can't use this channel")
                     .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
-            } else {
+                return { embeds: [embed] };
+            } else if (guildQueue.songQueue.length > 0) {
                 const position = this.queue.get(guildId).songQueue.push(url);
                 embed.setTitle(`Added ${info.video_details.title} to server queue`)
                     .setDescription(`Current position: ${position}`);
+                return { embeds: [embed] };
             }
-        } else {
-            this.createQueue(guildId, url, messageChannel, connection, member);
-            return await this.play(guildId);
         }
+
+        this.createQueue(guildId, url, messageChannel, connection, member);
+        return await this.play(guildId);
 
         return { embeds: [embed] };
     }
@@ -57,7 +59,7 @@ class AudioManager {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
 
-            if (guildQueue.songQueue.length > 0) {
+            if (guildQueue.songQueue.length > 0 && !guildQueue.loop) {
                 guildQueue.messageChannel.send(await this.play(guildId));
             } else {
                 guildQueue.timeoutID = setTimeout(async () => {
