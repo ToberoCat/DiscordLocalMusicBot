@@ -2,5 +2,6 @@
   "botToken": "", // The bot token for your discord bot. Create your bot at: https://discord.com/developers/applications and then invite the bot using https://discordapi.com/permissions.html
   "useGlobalCommands": false, // Set to true if you want the bot to add the slash commands to EVERY guild
   "slashCommandGuild": "779302110319607849", // For faster access to slash commands. only used when useGlobalCommands is set to false. This id is only for one guild. IF your bot runs on more than one, please set useGlobalCommands to true
-  "prefix": "m." // Command prefix
+  "prefix": "m.", // Command prefix
+  "isFFmpegInstalled": true // Set to false if you have no ffmpeg installed. This will allow volume control
 }

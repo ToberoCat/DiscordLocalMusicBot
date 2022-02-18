@@ -6,8 +6,9 @@ const { video_info, stream } = require("play-dl");
 const youtubeThumbnail = require("youtube-thumbnail");
 
 class AudioManager {
-    constructor() {
+    constructor(config) {
         this.queue = new Map();
+        this.config = config;
     }
 
     async connect(member) {
@@ -83,6 +84,7 @@ class AudioManager {
             connection: connection,
             voiceChannelId: member.voice.channelId,
             player: player,
+            resource: undefined,
             loop: false,
             playing: "",
             timeoutID: -1,
@@ -102,13 +104,19 @@ class AudioManager {
             return { embeds: [ embed ] };
         }
 
+        if (!this.config.isFFmpegInstalled) {
+            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Volume is disabled")
+                .setDescription(`You can't change volume, because this requires FFmpeg to be installed on the host computer`);
+            return { embeds: [ embed ] };
+        }
+
         if (guildQueue.messageChannel.id !== messageChannel.id) {
             const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
                 .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
             return { embeds: [ embed ] };
         }
 
-        guildQueue.connection.setVolume(parseInt(volume));
+        guildQueue.resource.setVolume(parseInt(volume));
         const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Changed volume").setDescription(`You changed the volume to ${volume}`);
         return { embeds: [ embed ] };
     }
@@ -130,11 +138,17 @@ class AudioManager {
             const embed = new MessageEmbed().setColor("#ED4245").setTitle("Left because no song was in queue").setTimestamp();
             return { embeds: [ embed ] }
         }
+
         const audioStream = await stream(nextSong);
-        const resource = createAudioResource(audioStream.stream, {
+        guildQueue.resource = createAudioResource(audioStream.stream, {
             inputType: audioStream.type
         })
-        guildQueue.player.play(resource);
+
+        if (this.config.isFFmpegInstalled) {
+            guildQueue.player.play(guildQueue.resource, {inlineVolume: true});
+        } else {
+            guildQueue.player.play(guildQueue.resource);
+        }
         const info = await video_info(nextSong);
         const thumbnail = youtubeThumbnail(nextSong);
 
