@@ -90,7 +90,7 @@ class AudioManager {
         });
     }
 
-    async setVolume(volume) {
+    async setVolume(volume, messageChannel) {
         if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
                 .setTitle("You are in no voice channel")
                 .setDescription("You need to connect to a voice channel to use this command") ] };
@@ -108,8 +108,8 @@ class AudioManager {
             return { embeds: [ embed ] };
         }
 
-        guildQueue.loop = !guildQueue.loop;
-        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle(guildQueue.loop ? "Now looping currently playing song" : "Stopped looping currently playing song");
+        guildQueue.connection.setVolume(parseInt(volume));
+        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Changed volume").setDescription(`You changed the volume to ${volume}`);
         return { embeds: [ embed ] };
     }
 
