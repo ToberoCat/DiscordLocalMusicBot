@@ -73,11 +73,6 @@ class AudioManager {
         });
     }
 
-    setMessage(message) {
-        const guildQueue = this.queue.get(message.guildId);
-        guildQueue.message = message;
-    }
-
     async play(guildId) {
         const guildQueue = this.queue.get(guildId);
 
@@ -106,7 +101,8 @@ class AudioManager {
         guildQueue.playing = nextSong;
 
         return { embeds: [ new MessageEmbed().setColor("#1ED760").setTitle(`Now playing: ${info.video_details.title}`)
-                .setDescription(`Go to the [youtube](${nextSong})`).setThumbnail(thumbnail.high.url).setTimestamp() ], components: [ this.getRow(guildId) ]}
+                .setDescription(`Go to the [youtube](${nextSong})`).setThumbnail(thumbnail.high.url).setTimestamp() ],
+            components: [ this.getRow(guildId) ]}
     }
 
     getSkipButton() {
@@ -136,7 +132,7 @@ class AudioManager {
     }
     getRow(guildId) {
         return new MessageActionRow().addComponents(this.getSkipButton(), this.getPauseButton(),
-            this.getResumeButton(this.queue.get(guildId).playing), this.getLoopButton(), this.getStopButton());
+            this.getResumeButton(), this.getLoopButton(), this.getStopButton());
     }
 
     stop(messageChannel, member) {
