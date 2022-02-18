@@ -39,7 +39,7 @@ class AudioManager {
                 embed.setColor("#ED4245").setTitle("Can't use this channel")
                     .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
                 return { embeds: [embed] };
-            } else if (guildQueue.songQueue.length > 0) {
+            } else if (guildQueue.songQueue.length > 0 && !guildQueue.playing) {
                 const position = this.queue.get(guildId).songQueue.push(url);
                 embed.setTitle(`Added ${info.video_details.title} to server queue`)
                     .setDescription(`Current position: ${position}`);
@@ -63,6 +63,8 @@ class AudioManager {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
 
+            guildQueue.cachedPlaying = guildQueue.playing;
+            guildQueue.playing = "";
             if (guildQueue.songQueue.length > 0 || guildQueue.loop) {
                 guildQueue.messageChannel.send(await this.play(guildId));
             } else {
@@ -75,6 +77,8 @@ class AudioManager {
         player.on(AudioPlayerStatus.Playing, async () => {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue == null) return;
+            guildQueue.playing = guildQueue.cachedPlaying;
+            guildQueue.cachedPlaying = "";
             clearTimeout(guildQueue.timeoutID);
         });
 
@@ -87,38 +91,10 @@ class AudioManager {
             resource: undefined,
             loop: false,
             playing: "",
+            cachedPlaying: "",
             timeoutID: -1,
             songQueue: [ filePath ],
         });
-    }
-
-    async setVolume(volume, messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
-
-        const guildQueue = this.queue.get(messageChannel.guild.id);
-
-        if (guildQueue == null) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Bot isn't playing anything");
-            return { embeds: [ embed ] };
-        }
-
-        if (!this.config.isFFmpegInstalled) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Volume is disabled")
-                .setDescription(`You can't change volume, because this requires FFmpeg to be installed on the host computer`);
-            return { embeds: [ embed ] };
-        }
-
-        if (guildQueue.messageChannel.id !== messageChannel.id) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
-                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
-            return { embeds: [ embed ] };
-        }
-
-        guildQueue.resource.setVolume(parseInt(volume));
-        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Changed volume").setDescription(`You changed the volume to ${volume}`);
-        return { embeds: [ embed ] };
     }
 
     async play(guildId) {
