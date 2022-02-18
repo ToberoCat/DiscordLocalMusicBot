@@ -45,7 +45,6 @@ class AudioManager {
                     .setDescription(`Current position: ${position}`);
                 return { embeds: [embed] };
             } else {
-                this.createQueue(guildId, url, messageChannel, connection, member);
                 return await this.play(guildId);
             }
         } else {
@@ -67,8 +66,8 @@ class AudioManager {
             if (guildQueue.songQueue.length > 0 || guildQueue.loop) {
                 guildQueue.messageChannel.send(await this.play(guildId));
             } else {
+                guildQueue.playing = "";
                 guildQueue.timeoutID = setTimeout(async () => {
-                    guildQueue.playing = "";
                     guildQueue.messageChannel.send(await this.play(guildId));
                 }, 60000);
             }
