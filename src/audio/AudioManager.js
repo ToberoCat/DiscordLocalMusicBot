@@ -66,8 +66,8 @@ class AudioManager {
             } else {
                 guildQueue.playing = "";
                 guildQueue.timeoutID = setTimeout(async () => {
-                    guildQueue.messageChannel.send(await this.play(guildId));
-                }, 1500);
+                    this.queue.remove(guildId);
+                }, 200);
             }
 
         });
@@ -105,7 +105,6 @@ class AudioManager {
         }
 
         if (nextSong == null) {
-            guildQueue.connection.destroy();
             this.queue.delete(guildId);
 
             const embed = new MessageEmbed().setColor("#ED4245").setTitle("Left because no song was in queue").setTimestamp();
