@@ -2,6 +2,7 @@ const { MessageActionRow, MessageButton, MessageEmbed} = require('discord.js');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, getVoiceConnection, NoSubscriberBehavior,
     AudioPlayerStatus
 } = require("@discordjs/voice");
+const { getEmbed } = require("../language/Language");
 const { video_info, stream } = require("play-dl");
 const youtubeThumbnail = require("youtube-thumbnail");
 
@@ -21,13 +22,10 @@ class AudioManager {
     }
 
     async playSong(url, messageChannel, member) {
-        const embed = new MessageEmbed().setColor("#1ED760").setTimestamp();
-
         const connection = await this.connect(member);
 
         if (connection === "NOT_CONNECTED") {
-            embed.setColor("#ED4245").setTitle("You are in no voice channel").setDescription("You need to connecto to a voice channel to use this command");
-            return { embeds: [ embed ] }
+            return { embeds: [ getEmbed("no-connection") ] }
         }
 
         const guildId = messageChannel.guild.id;
@@ -36,21 +34,18 @@ class AudioManager {
         if (this.queue.has(guildId)) {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue.messageChannel.id !== messageChannel.id) {
-                embed.setColor("#ED4245").setTitle("Can't use this channel")
-                    .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
-                return { embeds: [embed] };
+                const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel.toString() } ])
+                return { embeds: [ embed ] };
             } else {
                 const position = this.queue.get(guildId).songQueue.push(url);
-                embed.setTitle(`Added ${info.video_details.title} to server queue`)
-                    .setDescription(`Current position: ${position}`);
-                return { embeds: [embed] };
+                const embed = getEmbed("added-to-queue", [{from: "position",to: position },
+                    {from: "song", to: info.video_details.title} ])
+                return { embeds: [ embed ] };
             }
         } else {
             this.createQueue(guildId, url, messageChannel, connection, member);
             return await this.play(guildId);
         }
-
-        return { embeds: [embed] };
     }
 
     createQueue(guildId, filePath, messageChannel, connection, member) {
@@ -62,11 +57,15 @@ class AudioManager {
 
             guildQueue.cachedPlaying = guildQueue.playing;
             if (guildQueue.songQueue.length > 0 || guildQueue.loop) {
-                guildQueue.messageChannel.send(await this.play(guildId));
+                guildQueue.messageChannel.send(await this.play(guildId)).then(message => {
+                    setTimeout(() => {
+                        message.delete();
+                    }, 30000);
+                });
             } else {
                 guildQueue.playing = "";
                 guildQueue.timeoutID = setTimeout(async () => {
-                    this.queue.remove(guildId);
+                    this.queue.delete(guildId);
                 }, 200);
             }
 
@@ -107,8 +106,7 @@ class AudioManager {
         if (nextSong == null) {
             this.queue.delete(guildId);
 
-            const embed = new MessageEmbed().setColor("#ED4245").setTitle("Left because no song was in queue").setTimestamp();
-            return { embeds: [ embed ] }
+            return { embeds: [ getEmbed("no-song-in-queue") ] }
         }
 
         const audioStream = await stream(nextSong);
@@ -125,10 +123,13 @@ class AudioManager {
         const thumbnail = youtubeThumbnail(nextSong);
 
         guildQueue.playing = nextSong;
+        const embed = getEmbed("next-song-playing", [
+            {from: "song", to: info.video_details.title},
+            {from: "song.url", to: nextSong},
+            {from: "song.thumbnail", to: thumbnail.high.url}
+        ]);
 
-        return { embeds: [ new MessageEmbed().setColor("#1ED760").setTitle(`Now playing: ${info.video_details.title}`)
-                .setDescription(`Go to the [youtube](${nextSong})`).setThumbnail(thumbnail.high.url).setTimestamp() ],
-            components: [ this.getRow(guildId) ]}
+        return { embeds: [ embed ], components: [ this.getRow(guildId) ]}
     }
 
     getSkipButton() {
@@ -162,9 +163,7 @@ class AudioManager {
     }
 
     stop(messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
+        if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
         const guildQueue = this.queue.get(messageChannel.guild.id);
 

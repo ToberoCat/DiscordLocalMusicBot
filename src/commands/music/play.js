@@ -31,7 +31,7 @@ module.exports = {
 }
 
 async function execute(args, channel, member) {
-    const query = args.join(" ");
+    const query = args.join(" ").split("&list=")[0];
     let url = "";
     if (youtubeURLRegex.test(query)) {
         url = query;

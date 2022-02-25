@@ -1,0 +1,74 @@
+{
+  "no-connection": {
+    "title": "Connection required",
+    "type": "rich",
+    "description": "You need to connect to a voice channel to use this command",
+    "url": null,
+    "color": "#ED4245",
+    "fields": [],
+    "thumbnail": null,
+    "image": null,
+    "author": null,
+    "footer": null
+  },
+  "other-channel-in-use": {
+    "title": "Can't use this channel",
+    "type": "rich",
+    "description": "Another channel, because it's already in use. Please go to {messageChannel}",
+    "url": null,
+    "color": "#ED4245",
+    "fields": [],
+    "thumbnail": null,
+    "image": null,
+    "author": null,
+    "footer": null
+  },
+  "added-to-queue": {
+    "title": "Added {song} to queue",
+    "type": "rich",
+    "description": "Got got put into queue at position {position}",
+    "url": null,
+    "color": "#1ED760",
+    "fields": [],
+    "thumbnail": null,
+    "image": null,
+    "author": null,
+    "footer": null
+  },
+  "no-song-in-queue": {
+    "title": "No song in queue",
+    "type": "rich",
+    "description": "Use /play to play another song",
+    "url": null,
+    "color": "#ED4245",
+    "fields": [],
+    "thumbnail": null,
+    "image": "https://assets.materialup.com/uploads/8814432b-2132-439c-bc9e-398f8a84dbea/attachment.jpg",
+    "author": null,
+    "footer": null
+  },
+  "next-song-playing": {
+    "title": "Now playing: {song}",
+    "type": "rich",
+    "description": "Go to the [youtube]({song.url})",
+    "url": null,
+    "color": "#1ED760",
+    "fields": [],
+    "thumbnail": { "url": "{song.thumbnail}" },
+    "image": null,
+    "author": null,
+    "footer": null
+  },
+  "nothing-to-stop": {
+    "title": "Now playing: {song}",
+    "type": "rich",
+    "description": "Go to the [youtube]({song.url})",
+    "url": null,
+    "color": "#1ED760",
+    "fields": [],
+    "thumbnail": { "url": "{song.thumbnail}" },
+    "image": null,
+    "author": null,
+    "footer": null
+  }
+}

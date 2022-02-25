@@ -21,7 +21,11 @@ module.exports = {
         execute(args, message.channel, message.member).then((response, err) => {
             if (err) return console.error(err);
 
-            message.channel.send(response);
+            message.channel.send(response).then(message => {
+                setTimeout(() => {
+                    message.delete();
+                }, 30000);
+            });
         });
     }
 }
