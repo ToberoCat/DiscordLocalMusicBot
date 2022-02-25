@@ -34,7 +34,7 @@ class AudioManager {
         if (this.queue.has(guildId)) {
             const guildQueue = this.queue.get(guildId);
             if (guildQueue.messageChannel.id !== messageChannel.id) {
-                const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel.toString() } ])
+                const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
                 return { embeds: [ embed ] };
             } else {
                 const position = this.queue.get(guildId).songQueue.push(url);
@@ -168,36 +168,28 @@ class AudioManager {
         const guildQueue = this.queue.get(messageChannel.guild.id);
 
         if (guildQueue == null) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("There is nothing to stop")
-                .setDescription(`You can't stop me from playing nothing`);
-            return { embeds: [ embed ] };
+            return { embeds: [ getEmbed("nothing-to-stop") ] };
         }
 
         if (guildQueue.messageChannel.id !== messageChannel.id) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
-                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
             return { embeds: [ embed ] };
         }
 
-        guildQueue.connection.destroy();
         this.queue.delete(messageChannel.guild.id);
-        return { embeds: [ new MessageEmbed().setColor("#5865F2").setTitle("Stopped playing").setTimestamp() ]}
+        return { embeds: [ getEmbed("stopped-playing") ]}
     }
     async skip(messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
+        if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
         const guildQueue = this.queue.get(messageChannel.guild.id);
 
         if (guildQueue == null) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("There is nothing to skip");
-            return { embeds: [ embed ] };
+            return { embeds: [ getEmbed("nothing-to-skip") ] };
         }
 
         if (guildQueue.messageChannel.id !== messageChannel.id) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
-                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
             return { embeds: [ embed ] };
         }
         const looped = guildQueue.loop;
@@ -208,70 +200,52 @@ class AudioManager {
         return message;
     }
     pause(messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
+        if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
         const guildQueue = this.queue.get(messageChannel.guild.id);
 
-        if (guildQueue == null) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("There is nothing to pause");
-            return { embeds: [ embed ] };
-        }
+        if (guildQueue == null) return { embeds: [ getEmbed("nothing-to-pause") ] };
 
         if (guildQueue.messageChannel.id !== messageChannel.id) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
-                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
             return { embeds: [ embed ] };
         }
 
         guildQueue.player.pause();
-        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Paused song");
-        return { embeds: [ embed ] };
+        return { embeds: [ getEmbed("paused") ] };
     }
     resume(messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
+        if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
         const guildQueue = this.queue.get(messageChannel.guild.id);
 
-        if (guildQueue == null) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("There is nothing to resume");
-            return { embeds: [ embed ] };
-        }
+        if (guildQueue == null) return { embeds: [ getEmbed("nothing-to-resume") ] };
 
         if (guildQueue.messageChannel.id !== messageChannel.id) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
-                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
             return { embeds: [ embed ] };
         }
 
         guildQueue.player.unpause();
-        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle("Resumed song");
-        return { embeds: [ embed ] };
+        return { embeds: [ getEmbed("resumed") ] };
     }
     loop(messageChannel, member) {
-        if (!member.voice.channel) return { embeds: [ new MessageEmbed().setTimestamp().setColor("#ED4245")
-                .setTitle("You are in no voice channel")
-                .setDescription("You need to connect to a voice channel to use this command") ] };
+        if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
         const guildQueue = this.queue.get(messageChannel.guild.id);
 
         if (guildQueue == null) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Bot isn't playing anything");
-            return { embeds: [ embed ] };
+            return { embeds: [ getEmbed("nothing-to-loop") ] };
         }
 
         if (guildQueue.messageChannel.id !== messageChannel.id) {
-            const embed = new MessageEmbed().setTimestamp().setColor("#ED4245").setTitle("Can't use this channel")
-                .setDescription(`Another channel, because it's already in use. Please go to ${guildQueue.messageChannel}`);
+            const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
             return { embeds: [ embed ] };
         }
 
         guildQueue.loop = !guildQueue.loop;
-        const embed = new MessageEmbed().setTimestamp().setColor("#5865F2").setTitle(guildQueue.loop ? "Now looping currently playing song" : "Stopped looping currently playing song");
-        return { embeds: [ embed ] };
+        if (guildQueue.loop) return { embeds: [ getEmbed("looped-active") ] };
+        return { embeds: [ getEmbed("looped-disabled") ] };
     }
 }
 

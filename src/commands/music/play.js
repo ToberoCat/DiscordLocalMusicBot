@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { audio, client } = require("../../index");
+const { audio, client, config } = require("../../index");
 const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require("discord.js");
 const play = require('play-dl');
 
@@ -25,7 +25,10 @@ module.exports = {
         execute(args, message.channel, message.member).then(async (response, err) => {
             if (err) return console.error(err);
 
-            await message.channel.send(response);
+            const sent = await message.channel.send(response);
+            setTimeout(() => {
+                sent.delete();
+            }, config.messageDeletion);
         });
     }
 }
