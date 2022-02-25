@@ -30,5 +30,5 @@ module.exports = {
 }
 
 async function execute(args, channel, member) {
-    return audio.stop(channel, member);
+    return audio.leave(channel, member);
 }

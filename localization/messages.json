@@ -178,5 +178,17 @@
     "image": null,
     "author": null,
     "footer": null
+  },
+  "vc-join": {
+    "title": "{user} joined {channel}",
+    "type": "rich",
+    "description": "{friend_mentions}",
+    "url": null,
+    "color": "#5865F2",
+    "fields": [],
+    "thumbnail": null,
+    "image": null,
+    "author": null,
+    "footer": null
   }
 }

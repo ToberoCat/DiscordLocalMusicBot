@@ -5,6 +5,7 @@ const { joinVoiceChannel, createAudioPlayer, createAudioResource, getVoiceConnec
 const { getEmbed } = require("../language/Language");
 const { video_info, stream } = require("play-dl");
 const youtubeThumbnail = require("youtube-thumbnail");
+const {config} = require("../index");
 
 class AudioManager {
     constructor(config) {
@@ -57,10 +58,12 @@ class AudioManager {
 
             guildQueue.cachedPlaying = guildQueue.playing;
             if (guildQueue.songQueue.length > 0 || guildQueue.loop) {
-                guildQueue.messageChannel.send(await this.play(guildId)).then(message => {
+                const msg = await this.play(guildId);
+                if (guildQueue.loop) return;
+                guildQueue.messageChannel.send(msg).then(message => {
                     setTimeout(() => {
                         message.delete();
-                    }, 30000);
+                    }, config.messageDeletion);
                 });
             } else {
                 guildQueue.playing = "";
@@ -108,7 +111,7 @@ class AudioManager {
 
             return { embeds: [ getEmbed("no-song-in-queue") ] }
         }
-
+        
         const audioStream = await stream(nextSong);
         guildQueue.resource = createAudioResource(audioStream.stream, {
             inputType: audioStream.type
@@ -161,7 +164,26 @@ class AudioManager {
         return new MessageActionRow().addComponents(this.getSkipButton(), this.getPauseButton(),
             this.getResumeButton(), this.getLoopButton(), this.getStopButton());
     }
+    leave(messageChannel, member) {
+        if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
+        const guildQueue = this.queue.get(messageChannel.guild.id);
+
+        if (guildQueue == null) {
+            return { embeds: [ getEmbed("nothing-to-stop") ] };
+        }
+
+        if (guildQueue.messageChannel.id !== messageChannel.id) {
+            const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
+            return { embeds: [ embed ] };
+        }
+
+        guildQueue.player.destroy();
+        guildQueue.connection.destroy();
+
+        this.queue.delete(messageChannel.guild.id);
+        return { embeds: [ getEmbed("stopped-playing") ]}
+    }
     stop(messageChannel, member) {
         if (!member.voice.channel) return { embeds: [ getEmbed("no-connection") ] };
 
@@ -175,6 +197,8 @@ class AudioManager {
             const embed = getEmbed("other-channel-in-use", [{from: "messageChannel",to: guildQueue.messageChannel } ])
             return { embeds: [ embed ] };
         }
+
+        guildQueue.player.destroy();
 
         this.queue.delete(messageChannel.guild.id);
         return { embeds: [ getEmbed("stopped-playing") ]}

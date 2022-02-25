@@ -47,6 +47,8 @@ async function execute(args, channel, member) {
             return { embeds: [ new MessageEmbed().setTitle("Couldn't find song")
                     .setDescription(`The song ${query} you were searching for wasn't found `) ] };
         }
+        if (search.length === 0 || !search[0].url) return { embeds: [ new MessageEmbed().setTitle("Couldn't find song")
+                .setDescription(`The song ${query} you were searching for wasn't found `) ] };
         url = search[0].url;
     }
 
