@@ -5,7 +5,6 @@ const { joinVoiceChannel, createAudioPlayer, createAudioResource, getVoiceConnec
 const { getEmbed } = require("../language/Language");
 const { video_info, stream } = require("play-dl");
 const youtubeThumbnail = require("youtube-thumbnail");
-const {config} = require("../index");
 
 class AudioManager {
     constructor(config) {
@@ -63,7 +62,7 @@ class AudioManager {
                 guildQueue.messageChannel.send(msg).then(message => {
                     setTimeout(() => {
                         message.delete();
-                    }, config.messageDeletion);
+                    }, this.config.messageDeletion);
                 });
             } else {
                 guildQueue.playing = "";
